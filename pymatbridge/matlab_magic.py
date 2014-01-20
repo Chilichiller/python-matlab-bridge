@@ -21,12 +21,11 @@ from urllib2 import URLError
 
 import numpy as np
 try:
-    import tables
     import scipy.io as sio
     has_io = True
 except ImportError:
     has_io = False
-    no_io_str = "Must have pytables and scipy.io to perform i/o"
+    no_io_str = "Must have scipy.io to perform i/o"
     no_io_str += "operations with the Matlab session"
     
 from IPython.core.displaypub import publish_display_data
@@ -60,15 +59,6 @@ class MatlabInterperterError(RuntimeError):
             return unicode_to_str(unicode(self), 'utf-8')
 
 
-def loadmat(fname):
-    """
-    Use pytables to read a variable from a v7.3 mat file
-    """
-
-    f = tables.File(fname)
-    return f.root.__getattr__(f.root.__members__[0])
-
-
 def matlab_converter(matlab, key):
     """
 
@@ -78,10 +68,10 @@ def matlab_converter(matlab, key):
     tempdir = tempfile.gettempdir()
     # We save as hdf5 in the matlab session, so that we can grab large
     # variables:
-    matlab.run_code("save('%s/%s.mat','%s','-v7.3')"%(tempdir, key, key),
+    matlab.run_code("save('%s/%s.mat','%s')"%(tempdir, key, key),
                     maxtime=matlab.maxtime)
     
-    return loadmat('%s/%s.mat'%(tempdir, key))
+    return sio.loadmat('%s/%s.mat'%(tempdir, key))[key]
 
 
 
